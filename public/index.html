@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Map Geography Game</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Header with timer and controls -->
+        <div id="header">
+            <div id="game-info">
+                <h1>🌍 World Geography Challenge</h1>
+                <div id="score-display">
+                    <span id="found-count">0</span> / <span id="total-count">0</span> countries found
+                </div>
+            </div>
+            
+            <div id="timer-section">
+                <div id="timer-display">20:00</div>
+                <div id="timer-controls">
+                    <button id="start-btn" class="btn btn-primary">Start Game</button>
+                    <button id="pause-btn" class="btn btn-secondary" disabled>Pause</button>
+                    <button id="reset-btn" class="btn btn-secondary">Reset</button>
+                </div>
+                <div id="timer-config">
+                    <label for="time-input">Time (minutes):</label>
+                    <input type="number" id="time-input" min="1" max="120" value="20">
+                    <button id="set-time-btn" class="btn btn-small">Set</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search bar -->
+        <div id="search-container">
+            <input 
+                type="text" 
+                id="country-search" 
+                placeholder="Type a country name..." 
+                autocomplete="off"
+                disabled
+            >
+            <div id="search-feedback"></div>
+            <div id="autocomplete-list"></div>
+        </div>
+
+        <!-- Main content area -->
+        <div id="main-content">
+            <!-- Map -->
+            <div id="map"></div>
+
+            <!-- Sidebar with found countries -->
+            <div id="sidebar">
+                <h2>Found Countries</h2>
+                <div id="countries-list"></div>
+            </div>
+        </div>
+
+        <!-- Game over modal -->
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="game-over-title">Time's Up!</h2>
+                <div id="final-stats">
+                    <p>You found <span id="final-count">0</span> out of <span id="final-total">0</span> countries!</p>
+                    <p>Percentage: <span id="final-percentage">0</span>%</p>
+                </div>
+                <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
