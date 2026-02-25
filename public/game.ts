@@ -1,5 +1,55 @@
+// Declare Leaflet types (loaded via CDN)
+declare const L: any;
+
+// Type definitions
+interface CountryAliases {
+    [key: string]: string;
+}
+
+interface GameState {
+    map: any;
+    countriesData: any;
+    foundCountries: Set<string>;
+    countryLayers: Map<string, CountryData>;
+    countryAliasMap: Map<string, string>;
+    timerInterval: number | null;
+    timeRemaining: number;
+    defaultTime: number;
+    isRunning: boolean;
+    isPaused: boolean;
+    gameOver: boolean;
+}
+
+interface CountryData {
+    layer: any;
+    feature: any;
+    name: string;
+}
+
+interface Elements {
+    map: HTMLElement;
+    searchInput: HTMLInputElement;
+    searchFeedback: HTMLElement;
+    autocompleteList: HTMLElement;
+    countriesList: HTMLElement;
+    foundCount: HTMLElement;
+    totalCount: HTMLElement;
+    timerDisplay: HTMLElement;
+    startBtn: HTMLButtonElement;
+    pauseBtn: HTMLButtonElement;
+    resetBtn: HTMLButtonElement;
+    timeInput: HTMLInputElement;
+    setTimeBtn: HTMLButtonElement;
+    gameOverModal: HTMLElement;
+    gameOverTitle: HTMLElement;
+    finalCount: HTMLElement;
+    finalTotal: HTMLElement;
+    finalPercentage: HTMLElement;
+    playAgainBtn: HTMLButtonElement;
+}
+
 // Country nicknames/aliases mapping
-const countryAliases = {
+const countryAliases: CountryAliases = {
     'usa': 'united states of america',
     'us': 'united states of america',
     'america': 'united states of america',
@@ -27,12 +77,12 @@ const countryAliases = {
 };
 
 // Game State
-const mainState = {
+const mainState: GameState = {
     map: null,
     countriesData: null,
-    foundCountries: new Set(),
-    countryLayers: new Map(),
-    countryAliasMap: new Map(), // Maps aliases to canonical names
+    foundCountries: new Set<string>(),
+    countryLayers: new Map<string, CountryData>(),
+    countryAliasMap: new Map<string, string>(),
     timerInterval: null,
     timeRemaining: 1200, // 20 minutes in seconds
     defaultTime: 1200,
@@ -42,30 +92,30 @@ const mainState = {
 };
 
 // DOM Elements
-const elements = {
-    map: document.getElementById('map'),
-    searchInput: document.getElementById('country-search'),
-    searchFeedback: document.getElementById('search-feedback'),
-    autocompleteList: document.getElementById('autocomplete-list'),
-    countriesList: document.getElementById('countries-list'),
-    foundCount: document.getElementById('found-count'),
-    totalCount: document.getElementById('total-count'),
-    timerDisplay: document.getElementById('timer-display'),
-    startBtn: document.getElementById('start-btn'),
-    pauseBtn: document.getElementById('pause-btn'),
-    resetBtn: document.getElementById('reset-btn'),
-    timeInput: document.getElementById('time-input'),
-    setTimeBtn: document.getElementById('set-time-btn'),
-    gameOverModal: document.getElementById('game-over-modal'),
-    gameOverTitle: document.getElementById('game-over-title'),
-    finalCount: document.getElementById('final-count'),
-    finalTotal: document.getElementById('final-total'),
-    finalPercentage: document.getElementById('final-percentage'),
-    playAgainBtn: document.getElementById('play-again-btn')
+const elements: Elements = {
+    map: document.getElementById('map')!,
+    searchInput: document.getElementById('country-search') as HTMLInputElement,
+    searchFeedback: document.getElementById('search-feedback')!,
+    autocompleteList: document.getElementById('autocomplete-list')!,
+    countriesList: document.getElementById('countries-list')!,
+    foundCount: document.getElementById('found-count')!,
+    totalCount: document.getElementById('total-count')!,
+    timerDisplay: document.getElementById('timer-display')!,
+    startBtn: document.getElementById('start-btn') as HTMLButtonElement,
+    pauseBtn: document.getElementById('pause-btn') as HTMLButtonElement,
+    resetBtn: document.getElementById('reset-btn') as HTMLButtonElement,
+    timeInput: document.getElementById('time-input') as HTMLInputElement,
+    setTimeBtn: document.getElementById('set-time-btn') as HTMLButtonElement,
+    gameOverModal: document.getElementById('game-over-modal')!,
+    gameOverTitle: document.getElementById('game-over-title')!,
+    finalCount: document.getElementById('final-count')!,
+    finalTotal: document.getElementById('final-total')!,
+    finalPercentage: document.getElementById('final-percentage')!,
+    playAgainBtn: document.getElementById('play-again-btn') as HTMLButtonElement
 };
 
 // Initialize the game
-async function initGame() {
+async function initGame(): Promise<void> {
     initMap();
     await loadCountriesData();
     setupEventListeners();
@@ -73,7 +123,7 @@ async function initGame() {
 }
 
 // Initialize Leaflet map
-function initMap() {
+function initMap(): void {
     mainState.map = L.map('map', {
         zoomControl: true,
         attributionControl: false,
@@ -94,15 +144,15 @@ function initMap() {
 }
 
 // Load countries GeoJSON data
-async function loadCountriesData() {
+async function loadCountriesData(): Promise<void> {
     try {
         // Using a public GeoJSON source for world countries
         const response = await fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson');
         mainState.countriesData = await response.json();
         
         // Add countries to map
-        mainState.countriesData.features.forEach(feature => {
-            const countryName = feature.properties.ADMIN || feature.properties.name;
+        mainState.countriesData.features.forEach((feature: any) => {
+            const countryName = (feature.properties?.ADMIN || feature.properties?.name) as string;
             const canonicalName = countryName.toLowerCase();
             
             const layer = L.geoJSON(feature, {
@@ -112,7 +162,7 @@ async function loadCountriesData() {
                     color: '#3b82f6',
                     weight: 1
                 }
-            }).addTo(mainState.map);
+            }).addTo(mainState.map!);
             
             mainState.countryLayers.set(canonicalName, {
                 layer: layer,
@@ -128,7 +178,7 @@ async function loadCountriesData() {
             }
         });
         
-        elements.totalCount.textContent = mainState.countryLayers.size;
+        elements.totalCount.textContent = mainState.countryLayers.size.toString();
         
     } catch (error) {
         console.error('Error loading countries data:', error);
@@ -138,7 +188,7 @@ async function loadCountriesData() {
 }
 
 // Setup event listeners
-function setupEventListeners() {
+function setupEventListeners(): void {
     elements.searchInput.addEventListener('input', handleSearchInput);
     elements.searchInput.addEventListener('keypress', handleSearchKeypress);
     elements.startBtn.addEventListener('click', startGame);
@@ -148,16 +198,17 @@ function setupEventListeners() {
     elements.playAgainBtn.addEventListener('click', resetGame);
     
     // Close autocomplete when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!elements.searchInput.contains(e.target)) {
+    document.addEventListener('click', (e: MouseEvent) => {
+        if (!elements.searchInput.contains(e.target as Node)) {
             elements.autocompleteList.innerHTML = '';
         }
     });
 }
 
 // Handle search input
-function handleSearchInput(e) {
-    const query = e.target.value.trim().toLowerCase();
+function handleSearchInput(e: Event): void {
+    const target = e.target as HTMLInputElement;
+    const query = target.value.trim().toLowerCase();
     
     // Clear autocomplete - no suggestions shown
     elements.autocompleteList.innerHTML = '';
@@ -173,18 +224,19 @@ function handleSearchInput(e) {
     // Auto-submit if exact match found (either by canonical name or alias)
     if (mainState.countryLayers.has(canonicalName) && !mainState.foundCountries.has(canonicalName)) {
         // Clear input immediately
-        e.target.value = '';
+        target.value = '';
         // Check country
         checkCountry(canonicalName);
         // Refocus on input
-        e.target.focus();
+        target.focus();
     }
 }
 
 // Handle search keypress (Enter key)
-function handleSearchKeypress(e) {
+function handleSearchKeypress(e: KeyboardEvent): void {
     if (e.key === 'Enter') {
-        const query = e.target.value.trim().toLowerCase();
+        const target = e.target as HTMLInputElement;
+        const query = target.value.trim().toLowerCase();
         // Resolve alias to canonical name
         const canonicalName = mainState.countryAliasMap.get(query) || query;
         checkCountry(canonicalName);
@@ -192,7 +244,7 @@ function handleSearchKeypress(e) {
 }
 
 // Check if country name is correct
-function checkCountry(query) {
+function checkCountry(query: string): void {
     if (!query || mainState.gameOver) return;
     
     // Check if country exists
@@ -227,7 +279,7 @@ function checkCountry(query) {
 }
 
 // Highlight country on map
-function highlightCountry(countryData) {
+function highlightCountry(countryData: CountryData): void {
     countryData.layer.setStyle({
         fillColor: '#4ade80',
         fillOpacity: 0.7,
@@ -237,21 +289,22 @@ function highlightCountry(countryData) {
     
     // Zoom to country with bounds checking
     const bounds = countryData.layer.getBounds();
-    const mapBounds = mainState.map.options.maxBounds;
+    const mapBounds = mainState.map!.options.maxBounds;
+    const maxBounds = L.latLngBounds(mapBounds);
     
     // Constrain the bounds to stay within map limits
     const constrainedBounds = L.latLngBounds(
         L.latLng(
-            Math.max(bounds.getSouth(), mapBounds.getSouth()),
-            Math.max(bounds.getWest(), mapBounds.getWest())
+            Math.max(bounds.getSouth(), maxBounds.getSouth()),
+            Math.max(bounds.getWest(), maxBounds.getWest())
         ),
         L.latLng(
-            Math.min(bounds.getNorth(), mapBounds.getNorth()),
-            Math.min(bounds.getEast(), mapBounds.getEast())
+            Math.min(bounds.getNorth(), maxBounds.getNorth()),
+            Math.min(bounds.getEast(), maxBounds.getEast())
         )
     );
     
-    mainState.map.flyToBounds(constrainedBounds, {
+    mainState.map!.flyToBounds(constrainedBounds, {
         padding: [50, 50],
         duration: 0.5,
         maxZoom: 4
@@ -259,7 +312,7 @@ function highlightCountry(countryData) {
 }
 
 // Add country to found list
-function addToFoundList(countryName) {
+function addToFoundList(countryName: string): void {
     console.log('Adding country to list:', countryName);
     console.log('Countries list element:', elements.countriesList);
     const item = document.createElement('div');
@@ -270,7 +323,7 @@ function addToFoundList(countryName) {
 }
 
 // Show feedback message
-function showFeedback(message, type) {
+function showFeedback(message: string, type: string): void {
     elements.searchFeedback.textContent = message;
     elements.searchFeedback.className = type;
     
@@ -281,12 +334,12 @@ function showFeedback(message, type) {
 }
 
 // Update display
-function updateDisplay() {
-    elements.foundCount.textContent = mainState.foundCountries.size;
+function updateDisplay(): void {
+    elements.foundCount.textContent = mainState.foundCountries.size.toString();
 }
 
 // Timer functions
-function startGame() {
+function startGame(): void {
     if (mainState.isRunning) return;
     
     mainState.isRunning = true;
@@ -304,8 +357,8 @@ function startGame() {
     startTimer();
 }
 
-function startTimer() {
-    mainState.timerInterval = setInterval(() => {
+function startTimer(): void {
+    mainState.timerInterval = window.setInterval(() => {
         if (!mainState.isPaused && mainState.timeRemaining > 0) {
             mainState.timeRemaining--;
             updateTimerDisplay();
@@ -328,19 +381,19 @@ function startTimer() {
     }, 1000);
 }
 
-function togglePause() {
+function togglePause(): void {
     mainState.isPaused = !mainState.isPaused;
     elements.pauseBtn.textContent = mainState.isPaused ? 'Resume' : 'Pause';
     elements.searchInput.disabled = mainState.isPaused;
 }
 
-function updateTimerDisplay() {
+function updateTimerDisplay(): void {
     const minutes = Math.floor(mainState.timeRemaining / 60);
     const seconds = mainState.timeRemaining % 60;
     elements.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
-function setCustomTime() {
+function setCustomTime(): void {
     const minutes = parseInt(elements.timeInput.value);
     if (minutes > 0 && minutes <= 120) {
         mainState.defaultTime = minutes * 60;
@@ -349,7 +402,7 @@ function setCustomTime() {
     }
 }
 
-function resetGame() {
+function resetGame(): void {
     // Clear timer
     if (mainState.timerInterval) {
         clearInterval(mainState.timerInterval);
@@ -377,7 +430,7 @@ function resetGame() {
     elements.gameOverModal.classList.add('hidden');
     
     // Reset map colors
-    mainState.countryLayers.forEach(countryData => {
+    mainState.countryLayers.forEach((countryData: CountryData) => {
         countryData.layer.setStyle({
             fillColor: '#1e3a8a',
             fillOpacity: 0.5,
@@ -387,13 +440,13 @@ function resetGame() {
     });
     
     // Reset map view
-    mainState.map.setView([20, 0], 2);
+    mainState.map!.setView([20, 0], 2);
     
     updateDisplay();
     updateTimerDisplay();
 }
 
-function endGame(completed) {
+function endGame(completed: boolean): void {
     mainState.gameOver = true;
     mainState.isRunning = false;
     
@@ -413,9 +466,9 @@ function endGame(completed) {
         elements.gameOverTitle.textContent = "⏰ Time's Up!";
     }
     
-    elements.finalCount.textContent = mainState.foundCountries.size;
-    elements.finalTotal.textContent = mainState.countryLayers.size;
-    elements.finalPercentage.textContent = percentage;
+    elements.finalCount.textContent = mainState.foundCountries.size.toString();
+    elements.finalTotal.textContent = mainState.countryLayers.size.toString();
+    elements.finalPercentage.textContent = percentage.toString();
     
     elements.gameOverModal.classList.remove('hidden');
 }
