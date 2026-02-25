@@ -54,6 +54,12 @@
             <!-- Sidebar with found countries -->
             <div id="sidebar">
                 <h2>Found Countries</h2>
+                <input
+                    type="text"
+                    id="filter-search"
+                    placeholder="Filter countries..."
+                    autocomplete="off"
+                >
                 <div id="countries-list"></div>
             </div>
         </div>
@@ -65,6 +71,10 @@
                 <div id="final-stats">
                     <p>You found <span id="final-count">0</span> out of <span id="final-total">0</span> countries!</p>
                     <p>Percentage: <span id="final-percentage">0</span>%</p>
+                </div>
+                <div id="missed-countries-section">
+                    <h3>Missed Countries:</h3>
+                    <div id="missed-countries-list"></div>
                 </div>
                 <button id="play-again-btn" class="btn btn-primary">Play Again</button>
             </div>

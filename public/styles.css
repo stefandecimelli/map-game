@@ -257,12 +257,32 @@ body {
     border-left: 3px solid #667eea;
     overflow-y: auto;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 #sidebar h2 {
-    margin-bottom: 15px;
+    margin: 0;
     color: #667eea;
     font-size: 20px;
+}
+
+#filter-search {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    background: #0f3460;
+    color: white;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#filter-search:focus {
+    border-color: #4ade80;
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
 }
 
 #countries-list {
@@ -349,6 +369,34 @@ body {
     color: #4ade80;
 }
 
+#missed-countries-section {
+    margin-top: 25px;
+    text-align: left;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#missed-countries-section h3 {
+    font-size: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #fbbf24;
+}
+
+#missed-countries-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+}
+
+.missed-country-item {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid #ef4444;
+    font-size: 14px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
@@ -379,8 +427,21 @@ body {
         gap: 10px;
     }
 
+    #main-content {
+        flex-direction: column;
+    }
+
+    #map {
+        height: 50vh;
+        min-height: 300px;
+    }
+
     #sidebar {
-        width: 250px;
+        width: 100%;
+        border-left: none;
+        border-top: 3px solid #667eea;
+        max-height: 20vh;
+        overflow-y: auto;
     }
 
     #game-info h1 {

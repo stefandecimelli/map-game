@@ -31,6 +31,7 @@ interface Elements {
     searchInput: HTMLInputElement;
     searchFeedback: HTMLElement;
     autocompleteList: HTMLElement;
+    filterSearch: HTMLInputElement;
     countriesList: HTMLElement;
     foundCount: HTMLElement;
     totalCount: HTMLElement;
@@ -45,6 +46,7 @@ interface Elements {
     finalCount: HTMLElement;
     finalTotal: HTMLElement;
     finalPercentage: HTMLElement;
+    missedCountriesList: HTMLElement;
     playAgainBtn: HTMLButtonElement;
 }
 
@@ -73,7 +75,8 @@ const countryAliases: CountryAliases = {
     'swaziland': 'eswatini',
     'macedonia': 'north macedonia',
     'vatican': 'vatican city',
-    'vatican city state': 'vatican city'
+    'vatican city state': 'vatican city',
+    'tanzania': 'united republic of tanzania'
 };
 
 // Game State
@@ -97,6 +100,7 @@ const elements: Elements = {
     searchInput: document.getElementById('country-search') as HTMLInputElement,
     searchFeedback: document.getElementById('search-feedback')!,
     autocompleteList: document.getElementById('autocomplete-list')!,
+    filterSearch: document.getElementById('filter-search') as HTMLInputElement,
     countriesList: document.getElementById('countries-list')!,
     foundCount: document.getElementById('found-count')!,
     totalCount: document.getElementById('total-count')!,
@@ -111,6 +115,7 @@ const elements: Elements = {
     finalCount: document.getElementById('final-count')!,
     finalTotal: document.getElementById('final-total')!,
     finalPercentage: document.getElementById('final-percentage')!,
+    missedCountriesList: document.getElementById('missed-countries-list')!,
     playAgainBtn: document.getElementById('play-again-btn') as HTMLButtonElement
 };
 
@@ -129,7 +134,8 @@ function initMap(): void {
         attributionControl: false,
         maxBounds: [[-90, -180], [90, 180]],
         maxBoundsViscosity: 1.0,
-        minZoom: 2,
+        minZoom: 4,
+        maxZoom: 6,
         worldCopyJump: false
     }).setView([20, 0], 3);
 
@@ -137,7 +143,7 @@ function initMap(): void {
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         subdomains: 'abcd',
-        maxZoom: 19,
+        maxZoom: 6,
         noWrap: true,
         bounds: [[-90, -180], [90, 180]]
     }).addTo(mainState.map);
@@ -221,6 +227,12 @@ async function loadCountriesData(): Promise<void> {
             if (withoutArticle !== canonicalName) {
                 mainState.countryAliasMap.set(withoutArticle, canonicalName);
             }
+            
+            // Also map version without "republic of" or "democratic republic of"
+            const withoutRepublic = canonicalName.replace(/^(democratic\s+)?republic\s+of\s+/i, '');
+            if (withoutRepublic !== canonicalName) {
+                mainState.countryAliasMap.set(withoutRepublic, canonicalName);
+            }
         });
         
         elements.totalCount.textContent = mainState.countryLayers.size.toString();
@@ -236,6 +248,7 @@ async function loadCountriesData(): Promise<void> {
 function setupEventListeners(): void {
     elements.searchInput.addEventListener('input', handleSearchInput);
     elements.searchInput.addEventListener('keypress', handleSearchKeypress);
+    elements.filterSearch.addEventListener('input', handleFilterInput);
     elements.startBtn.addEventListener('click', startGame);
     elements.pauseBtn.addEventListener('click', togglePause);
     elements.resetBtn.addEventListener('click', resetGame);
@@ -246,6 +259,22 @@ function setupEventListeners(): void {
     document.addEventListener('click', (e: MouseEvent) => {
         if (!elements.searchInput.contains(e.target as Node)) {
             elements.autocompleteList.innerHTML = '';
+        }
+    });
+}
+
+// Handle filter input
+function handleFilterInput(e: Event): void {
+    const target = e.target as HTMLInputElement;
+    const query = target.value.trim().toLowerCase();
+    
+    const countryItems = elements.countriesList.querySelectorAll('.country-item');
+    countryItems.forEach((item) => {
+        const countryName = item.textContent?.toLowerCase() || '';
+        if (countryName.includes(query)) {
+            (item as HTMLElement).style.display = '';
+        } else {
+            (item as HTMLElement).style.display = 'none';
         }
     });
 }
@@ -453,6 +482,7 @@ function resetGame(): void {
     elements.pauseBtn.textContent = 'Pause';
     elements.searchInput.disabled = true;
     elements.searchInput.value = '';
+    elements.filterSearch.value = '';
     elements.timeInput.disabled = false;
     elements.setTimeBtn.disabled = false;
     elements.countriesList.innerHTML = '';
@@ -500,6 +530,26 @@ function endGame(completed: boolean): void {
     elements.finalCount.textContent = mainState.foundCountries.size.toString();
     elements.finalTotal.textContent = mainState.countryLayers.size.toString();
     elements.finalPercentage.textContent = percentage.toString();
+    
+    // Show missed countries
+    elements.missedCountriesList.innerHTML = '';
+    const missedCountries: string[] = [];
+    mainState.countryLayers.forEach((countryData: CountryData, canonicalName: string) => {
+        if (!mainState.foundCountries.has(canonicalName)) {
+            missedCountries.push(countryData.name);
+        }
+    });
+    
+    // Sort alphabetically
+    missedCountries.sort();
+    
+    // Add to list
+    missedCountries.forEach(countryName => {
+        const item = document.createElement('div');
+        item.className = 'missed-country-item';
+        item.textContent = countryName;
+        elements.missedCountriesList.appendChild(item);
+    });
     
     elements.gameOverModal.classList.remove('hidden');
 }
