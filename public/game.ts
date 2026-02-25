@@ -131,7 +131,7 @@ function initMap(): void {
         maxBoundsViscosity: 1.0,
         minZoom: 2,
         worldCopyJump: false
-    }).setView([20, 0], 2);
+    }).setView([20, 0], 3);
 
     // Add tile layer with dark theme (no labels)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
@@ -150,10 +150,49 @@ async function loadCountriesData(): Promise<void> {
         const response = await fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson');
         mainState.countriesData = await response.json();
         
+        // List of city-states and micro-states to exclude
+        const excludedCountries = [
+            'vatican city',
+            'monaco',
+            'san marino',
+            'liechtenstein',
+            'andorra',
+            'singapore',
+            'malta',
+            'luxembourg',
+            'bahrain',
+            'maldives',
+            'barbados',
+            'saint lucia',
+            'grenada',
+            'saint vincent and the grenadines',
+            'antigua and barbuda',
+            'dominica',
+            'saint kitts and nevis',
+            'marshall islands',
+            'palau',
+            'nauru',
+            'tuvalu',
+            'micronesia',
+            'kiribati',
+            'tonga',
+            'samoa',
+            'seychelles',
+            'comoros',
+            'mauritius',
+            'cape verde',
+            'são tomé and príncipe'
+        ];
+        
         // Add countries to map
         mainState.countriesData.features.forEach((feature: any) => {
             const countryName = (feature.properties?.ADMIN || feature.properties?.name) as string;
             const canonicalName = countryName.toLowerCase();
+            
+            // Skip city-states and micro-states
+            if (excludedCountries.includes(canonicalName)) {
+                return;
+            }
             
             const layer = L.geoJSON(feature, {
                 style: {
@@ -175,6 +214,12 @@ async function loadCountriesData(): Promise<void> {
                 if (target === canonicalName) {
                     mainState.countryAliasMap.set(alias, canonicalName);
                 }
+            }
+            
+            // Also map version without articles (the, a, an)
+            const withoutArticle = canonicalName.replace(/^(the|a|an)\s+/i, '');
+            if (withoutArticle !== canonicalName) {
+                mainState.countryAliasMap.set(withoutArticle, canonicalName);
             }
         });
         
@@ -287,27 +332,13 @@ function highlightCountry(countryData: CountryData): void {
         weight: 2
     });
     
-    // Zoom to country with bounds checking
+    // Pan to country center without changing zoom
     const bounds = countryData.layer.getBounds();
-    const mapBounds = mainState.map!.options.maxBounds;
-    const maxBounds = L.latLngBounds(mapBounds);
+    const center = bounds.getCenter();
     
-    // Constrain the bounds to stay within map limits
-    const constrainedBounds = L.latLngBounds(
-        L.latLng(
-            Math.max(bounds.getSouth(), maxBounds.getSouth()),
-            Math.max(bounds.getWest(), maxBounds.getWest())
-        ),
-        L.latLng(
-            Math.min(bounds.getNorth(), maxBounds.getNorth()),
-            Math.min(bounds.getEast(), maxBounds.getEast())
-        )
-    );
-    
-    mainState.map!.flyToBounds(constrainedBounds, {
-        padding: [50, 50],
-        duration: 0.5,
-        maxZoom: 4
+    mainState.map!.panTo(center, {
+        animate: true,
+        duration: 0.5
     });
 }
 
