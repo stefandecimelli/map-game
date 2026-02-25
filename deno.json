@@ -3,6 +3,11 @@
     "start": "deno run --allow-net --allow-read --allow-write --allow-run --allow-env server.ts",
     "test": "deno test --allow-read"
   },
+  "lint": {
+    "rules": {
+      "exclude": ["no-explicit-any", "no-window", "no-window-prefix", "no-import-prefix"]
+    }
+  },
   "compilerOptions": {
     "lib": ["deno.window", "dom", "dom.iterable"]
   }
